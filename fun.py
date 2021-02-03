@@ -36,45 +36,9 @@ def make_response(
         },
         'version':'1.0',
     }
-
-    return webhook_response
-
-def make_only_response(
-    text="Текст ответа здесь",
-    tts=None, 
-    end_session=False,
-    buttons=None,
-    card=None,
-    directives=False, 
-    ):
-    response = {
-            'text':text,
-            'tts': tts if tts is not None else text,
-            "end_session": end_session
-        }
-    if buttons is not None:
-        response['buttons'] = buttons
-    if card is not None:
-        response['card']=card
-    if directives is True:
-        response['directives']={"request_geolocation": {}}
-
-    return  response
-
-
-    if context is not None:
-        if webhook_response.get('session_state') is None:
-            webhook_response['session_state'] = {}
-        webhook_response['session_state'] = {'context': context};
-
-    if geo_asked is not None:
-        webhook_response['user_state_update'] = {}
-        webhook_response['user_state_update']['geo_asked'] = geo_asked      
-
-
     print(webhook_response)
     return  webhook_response
-
+    
 def fallback(event):
     text="Извините данный диалог в разработке"
     return make_response(text,end_session= True)
@@ -145,19 +109,21 @@ def help_4_zagadka (event,ind_1,povtor=None):
     place=event.get('state').get('application').get('place_seen')
     step=event.get('state').get('application').get('step')
     status=event.get('state').get('application').get('status')
-    if ind_1==999 and status!='help_not_end':
-        buttons=[button('Да', hide=True),button('Нет', hide=True)]
-        card_999=True
-    elif ind_1==999 and status=='help_not_end':
-        buttons=[button('Да', hide=True)]
-    else:
-        buttons=[button('Я не знаю', hide=True),button('Повтори', hide=True)]
-        card_999=None
     if povtor:
         if status=='help_not_end':
             status='zagadka'
         elif status=='help_end':
             status='help_not_end'
+    if ind_1==999 and status!='help_not_end':
+        buttons=[button('Да', hide=True),button('Нет', hide=True)]
+        card_999=True
+    elif ind_1==999 and status=='help_not_end':
+        card_999=True
+        buttons=[button('Да', hide=True)]
+    else:
+        buttons=[button('Повтори', hide=True),button('Я не знаю', hide=True),button('Я знаю', hide=True)]
+        card_999=None
+
     if status=="zagadka" or status=='zag_not_end':
         param=text_to_resp(pers_help,ind_1,0,card=card_999)
         return make_response(text=param[0],tts=param[1], buttons=buttons,step=step, place=place,
